@@ -5,10 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,7 +17,9 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;
     String name;
+    @Column(name = "author_name")
     String authorName;
     String category;
+    @Column(name = "number_of_pages")
     int numberOfPages;
 }

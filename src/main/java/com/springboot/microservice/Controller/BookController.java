@@ -86,6 +86,7 @@ public class BookController {
         Optional<Book> book = bookRepository.findById(b1.getId());
         if(book!=null){
             BeanUtils.copyProperties(b1,book);
+            bookRepository.save(b1);
             return "Book details updated successfully";
         }
 
