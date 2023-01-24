@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class MicroserviceApplication {
 //    Class.forName("com.mysql.jdbc.Driver");
-
+//this is main method
 	public static void main(String[] args) {
 		SpringApplication.run(MicroserviceApplication.class, args);
 	}
