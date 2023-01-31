@@ -1,74 +1,67 @@
 package com.springboot.microservice.Controller;
 
 import com.springboot.microservice.Model.Employee;
-import com.springboot.microservice.Repository.EmployeeRespository;
+import com.springboot.microservice.Service.EmployeeService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.beans.Beans;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/employee")
 public class EmployeeController {
     @Autowired
-    private EmployeeRespository employeeRespository;
+    private EmployeeService employeeService;
 
     @GetMapping("/search")
-    public Employee getEmployeeById(@RequestParam Long id){
-        Employee employee = employeeRespository.findEmployeeById(id);
-        return employee;
+    public Optional<Employee> getEmployeeById(@RequestParam long id){
+        return employeeService.getEmployeeById(id);
     }
 
     @GetMapping("/list")
     public List<Employee> getAllEmployees(){
-        return employeeRespository.findAll();
+        return employeeService.getAllEmployees();
     }
 
     @PostMapping("/add")
     public String createEmployeeRecord(@RequestBody Employee emp){
-        employeeRespository.save(emp);
+        employeeService.addEmployee(emp);
         return "Employee added successfully";
     }
 
     @PutMapping("/update")
     public String updateEmployeeDetails(@RequestBody Employee emp){
-        if(employeeRespository.findEmployeeById(emp.getId()) != null) {
-            Employee existingEmp = employeeRespository.findEmployeeById(emp.getId());
-            BeanUtils.copyProperties(emp, existingEmp);
-            employeeRespository.save(existingEmp);
-
+        if(employeeService.getEmployeeById(emp.getId()).isPresent()) {
+            employeeService.updateEmployeeDetails(emp);
             return "Employee " + emp.getId() + " Details Updated Successfully!!";
         }
         return "Employee Details not found";
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteEmployeeRecord(@PathVariable Long id){
-        Employee emp = employeeRespository.findEmployeeById(id);
-        if(emp != null) {
-            employeeRespository.delete(emp);
-            return "Employee "+emp.getId()+" details deleted successfully";
+    public String deleteEmployeeRecord(@PathVariable long id){
+        Optional<Employee> emp = employeeService.getEmployeeById(id);
+        if(emp.isPresent()) {
+            employeeService.deleteEmployeeById(id);
         }
         return "Employee Details not found";
     }
 
     @DeleteMapping("/delete/all")
     public String deleteAllEmployeeRecords(){
-        employeeRespository.deleteAll();
+        employeeService.deleteAllEmployees();
         return "All employee records deleted successfully";
     }
 
     @PatchMapping("/update")
-    public Employee updateEmployeeFirstName(@RequestParam Long id, @RequestParam String firstName){
-        Employee emp = employeeRespository.findEmployeeById(id);
-        if(emp != null){
-            emp.setFirstName(firstName);
-            return emp;
+    public Employee updateEmployeeFirstName(@RequestParam Long id, @RequestParam String firstName) {
+        Optional<Employee> emp = employeeService.getEmployeeById(id);
+        if (emp.isPresent()) {
+            employeeService.updateEmployeeName(id, firstName);
         }
-        else
-            return null;
+        return null;
     }
-
 }
+
