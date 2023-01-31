@@ -1,13 +1,12 @@
 package com.springboot.microservice.Controller;
 
 import com.springboot.microservice.Model.Student;
-import com.springboot.microservice.Repository.StudentRepository;
+import com.springboot.microservice.Service.StudentService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,65 +14,43 @@ import java.util.Optional;
 @RequestMapping("/student")
 public class StudentController {
 
-    List<Student> students = new ArrayList<Student>();
-
     @GetMapping
     public String returnValue() {
         return "This is Student MS";
     }
 
     @Autowired
-    StudentRepository studentRepository;
+    StudentService studentService;
 
     @GetMapping(value = "/search")
-    public Optional<Student> getStudentById(@RequestParam int id) throws Exception {
-//        for (Student student : students) {
-//            if (id == student.getId()) {
-//                return student;
-//            }
-//        }
-        if(studentRepository.findById(id) != null){
-            return studentRepository.findById(id);
+    public Optional<Student> getStudentById(@RequestParam int id){
+        if(studentService.getStudentById(id).isPresent()){
+            return studentService.getStudentById(id);
         }
-        return null;
+        return Optional.empty();
     }
 
     @GetMapping(value = "/search/{name}")
-    public Student getStudentByName(@PathVariable @NotNull String name) throws Exception {
-//        for (Student student : students) {
-//            if (name.equalsIgnoreCase(student.getName())) {
-//                return student;
-//            }
-//        }
-        Student st = studentRepository.getStudentByName(name);
-        if(st != null){
-            return st;
-        }
-        return null;
+    public Optional<Student> getStudentByName(@PathVariable @NotNull String name){
+        Optional<Student> st = studentService.getStudentByName(name);
+        if(st.isPresent())  return st;
+        return Optional.empty();
     }
     @GetMapping(value = "/search/all")
     public List<Student> getAllStudents(){
-        return studentRepository.findAll();
+        return studentService.getAllStudents();
     }
 
     @PostMapping(value = "/add")
     public String addNewStudent(@RequestBody Student s1) {
-//        Student student = new Student(s1.getId(), s1.getName(), s1.getClassNum());
-//        students.add(student);
-          studentRepository.save(s1);
+          studentService.addStudent(s1);
         return "Student added successfully";
     }
 
     @PutMapping(value = "/update")
     public String updateStudentDetails(@RequestBody Student s1) {
-//        for (Student student : students) {
-//            if (student.getId() == s1.getId()) {
-//                BeanUtils.copyProperties(s1, student);
-//                return "Student details updated successfully";
-//            }
-//        }
-        Optional<Student> st = studentRepository.findById(s1.getId());
-        if(st != null ){
+        Optional<Student> st = studentService.getStudentById(s1.getId());
+        if(st.isPresent()){
             BeanUtils.copyProperties(s1,st);
             return "Student "+s1.getName()+"details updated successfully";
         }
@@ -83,15 +60,9 @@ public class StudentController {
 
     @DeleteMapping(value = "/delete/{id}")
     public String deleteStudentById(@PathVariable int id) {
-//        for (Student student : students) {
-//            if (id == student.getId()) {
-//                students.remove(student);
-//                return student.getName() + " deleted successfully";
-//            }
-//        }
-        Optional<Student> s = studentRepository.findById(id);
-        if(s != null){
-            studentRepository.deleteById(id);
+        Optional<Student> s = studentService.getStudentById(id);
+        if(s.isPresent()){
+            studentService.deleteStudentById(id);
             return "Student "+id+ " deleted successfully";
         }
 
