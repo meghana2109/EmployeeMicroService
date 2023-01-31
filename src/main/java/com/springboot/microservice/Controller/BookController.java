@@ -2,11 +2,11 @@ package com.springboot.microservice.Controller;
 
 import com.springboot.microservice.Model.Book;
 import com.springboot.microservice.Repository.BookRepository;
+import com.springboot.microservice.Service.BookService;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public class BookController {
     //{ b1, b2, b3}
 
     @Autowired
-    BookRepository bookRepository;
+    BookService bookService;
 
     @GetMapping
     public String sampleMethod() {
@@ -34,59 +34,40 @@ public class BookController {
 
     @GetMapping(value = "/search")
     public Optional<Book> getBookById(@RequestParam int id){
-//        Book b1 = new Book(1001, "How it Ends", "Laura Weiss", "Fiction", 244);
-//        Book b2 = new Book(1002, "Malgudi Days", "R K Narayan", "Fiction", 322);
-//        for(Book book : books) {
-//            if (id == book.getId()) {
-//                return book;
-//            }
-//        }
-        Optional<Book> b = bookRepository.findById(id);
-        if(b != null){
+        Optional<Book> b = bookService.getBookById(id);
+        if(b.isPresent()){
             return b;
         }
 
-        return null;
+        return Optional.empty();
     }
 
     @GetMapping(value = "/search/{name}")
     public Book getBookByName(@PathVariable @NotNull String name) {
-//        Book b1 = new Book(1001, "Sita", "Amish", "Fiction", 244);
-//        Book b2 = new Book(1002, "Ravan", "Amish", "Fiction", 322);
         for(Book book : books) {
             if (name.equalsIgnoreCase(book.getName())) {
                 return book;
             }
         }
-
         return null;
     }
     @GetMapping(value = "/search/all")
     public List<Book> getAllBooks(){
-        return bookRepository.findAll();
+        return bookService.getAllBooks();
     }
 
     @PostMapping(value = "/add")
     public String addNewBook(@RequestBody Book b1) {
-        //Book b = new Book(b1.getId(), b1.getName(), b1.getAuthorName(), b1.getCategory(), b1.getNumberOfPages());
-//        books.add(b);
-        bookRepository.save(b1);
+        bookService.saveBook(b1);
         return "Book added successfully";
     }
 
     @PutMapping(value = "/update")
-    public String updateBookDetails(@RequestBody Book b1) throws Exception {
-       // Book b3 = new Book(1003, "Ram", "Amish", "Fiction", 244);
-//        for(Book book : books) {
-//            if (book.getId() == b1.getId()) {
-//                BeanUtils.copyProperties(b1, book);
-//                return "Book details updated successfully";
-//            }
-//        }
-        Optional<Book> book = bookRepository.findById(b1.getId());
-        if(book!=null){
+    public String updateBookDetails(@RequestBody Book b1){
+        Optional<Book> book = bookService.getBookById(b1.getId());
+        if(book.isPresent()){
             BeanUtils.copyProperties(b1,book);
-            bookRepository.save(b1);
+            bookService.saveBook(b1);
             return "Book details updated successfully";
         }
 
@@ -94,20 +75,18 @@ public class BookController {
     }
 
     @DeleteMapping(value = "/delete/{id}")
-    public String deleteBookById(@PathVariable int id) throws Exception {
-//        Book b4 = new Book(1004, "Half GirlFriend", "Chethan Bhagat", "Fiction", 210);
-//        Book b5 = new Book(1005, "Two States", "Chethan Bhagat", "Fiction", 270);
-//        for(Book book : books) {
-//            if (id == book.getId()) {
-//                books.remove(book);
-//                return book.getName() + " deleted successfully";
-//            }
-//        }
-        if(bookRepository.findById(id) != null){
-            bookRepository.deleteById(id);
-            return "Book"+id +" deleted Succesfully";
+    public String deleteBookById(@PathVariable int id) {
+        if(bookService.getBookById(id).isPresent()){
+            bookService.deleteBookById(id);
+            return "Book"+id +" deleted Successfully";
         }
         return null;
+    }
+
+    @DeleteMapping(value = "/deleteAll")
+    public String deleteAllBooks(){
+        bookService.deleteAllBooks();
+        return " All Books Deleted Successfully";
     }
 
     @GetMapping("/listHeaders")
@@ -126,13 +105,7 @@ public class BookController {
 
     @GetMapping(value = "/exist")
     public String checkIfBookExist(@RequestHeader int id) {
-        Book b6 = new Book(1006, "The 3 mistakes of my Life", "Chetan Bhagat", "Fiction", 250);
-//        if (id == b6.getId()) {
-//            return b6.getName() + " by" + b6.getAuthorName() + " exists";
-//        } else {
-//            return "Book not found";
-//        }
-        if(bookRepository.findById(id) != null){
+        if(bookService.getBookById(id).isPresent()){
             return "Book "+id+" found successfully";
         }
         return "Book not found";
